@@ -12,6 +12,7 @@ from rl_interface import RLIntegrationLayer
 from routing_engine import SmartRouteRecommendationEngine
 from smart_city_dashboard import build_dashboard_metrics, print_smart_city_dashboard
 from traffic_config import PeakHourManager, get_peak_mode_from_args
+from unity_bridge import UnityBridge, UNITY_UPDATE_INTERVAL
 
 RL_CSV = "rl_training_data.csv"
 RL_CSV_HEADER = [
@@ -406,6 +407,7 @@ def print_summary(metrics):
 
 
 traci.start(sumoCmd)
+unity_bridge = UnityBridge("mp_nagar_2.net.xml", update_interval=UNITY_UPDATE_INTERVAL)
 
 traffic_predictor = joblib.load("traffic_predictor.pkl")
 
@@ -679,6 +681,9 @@ while traci.simulation.getMinExpectedNumber() > 0:
     active_profile = peak_hour_manager.get_profile(simulation_time)
     peak_hour_manager.report_profile_change(active_profile)
 
+    if unity_bridge.should_publish(steps):
+        unity_bridge.publish_vehicles(traci)
+
     if short_test and simulation_time >= 60:
         break
 
@@ -854,4 +859,5 @@ dashboard_metrics = build_dashboard_metrics(
     predicted_vehicles_processed,
 )
 print_smart_city_dashboard(dashboard_metrics, congestion_engine)
+unity_bridge.close()
 traci.close()
