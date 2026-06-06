@@ -1,434 +1,365 @@
-# Intelligent Traffic Signal Optimization using SUMO and TraCI
+# Smart Traffic Management System using SUMO and Predictive AI
 
 ## Overview
 
-This project presents a complete traffic signal performance study and optimization framework using **SUMO (Simulation of Urban Mobility)** and the **TraCI API**.
+This project presents an intelligent traffic management framework built on top of **SUMO (Simulation of Urban Mobility)** and the **TraCI API**. The system combines predictive traffic signal control, congestion analytics, emergency vehicle prioritization, machine learning-based traffic forecasting, and smart routing recommendations to improve traffic flow in an urban road network.
 
-The work is divided into two stages:
-
-1. **Baseline Traffic Signal Analysis (Before Implementation)** – Evaluates traffic performance under existing fixed-time signal operations.
-2. **Predictive Traffic Signal Control (After Implementation)** – Uses vehicle arrival prediction and dynamic signal adjustments to reduce congestion and improve traffic flow.
-
-The objective is to compare traditional traffic signal management with a predictive traffic control approach and measure improvements in waiting time, congestion, and overall network efficiency.
+The project was developed using a real road network extracted from OpenStreetMap and converted for use within SUMO.
 
 ---
 
-# Project Objectives
+## Key Features
 
-* Simulate real-world traffic conditions in the MP Nagar road network.
-* Analyze traffic signal performance under default configurations.
-* Predict vehicle arrivals at intersections.
-* Dynamically optimize traffic signal phases.
-* Compare baseline and optimized traffic performance.
-* Generate measurable traffic efficiency improvements.
+### Adaptive Traffic Signal Control
+
+* Predicts approaching traffic using route lookahead analysis.
+* Dynamically prepares or extends green phases before vehicles arrive.
+* Reduces unnecessary waiting and signal switching.
+
+### AI-Based Traffic Prediction
+
+* Multi-Output Random Forest Regression model.
+* Predicts:
+
+  * Future vehicle arrivals at junctions.
+  * Expected travel time between junctions.
+* Enables proactive traffic management rather than reactive control.
+
+### Congestion Scoring Engine
+
+* Continuously evaluates traffic conditions using:
+
+  * Vehicle count
+  * Waiting time
+  * Halted vehicles
+  * Average speed
+* Produces a normalized congestion score between 0 and 100.
+* Classifies congestion as:
+
+  * Low
+  * Medium
+  * High
+
+### Emergency Vehicle Priority
+
+* Detects:
+
+  * Ambulances
+  * Fire vehicles
+  * Police vehicles
+* Creates temporary green corridors along the vehicle's route.
+* Prioritizes emergency movement through intersections.
+
+### Smart Route Recommendation
+
+* Evaluates route quality using live congestion information.
+* Estimates potential route improvements.
+* Generates alternative route recommendations without modifying active vehicle routes.
+
+### Peak-Hour Traffic Profiles
+
+Supports multiple operating modes:
+
+* Normal Traffic
+* Morning Office Traffic
+* Evening Return Traffic
+
+Controller sensitivity and timing parameters automatically adapt to traffic conditions.
+
+### RL-Compatible Data Generation
+
+The system exports structured traffic data suitable for future Reinforcement Learning experiments.
+
+Captured information includes:
+
+* Vehicle movement history
+* Source and destination junctions
+* Travel time
+* Congestion levels
+* Signal states
+
+### Smart City Dashboard
+
+Provides network-wide performance analytics including:
+
+* Average waiting time
+* Average network speed
+* Congested junction count
+* Emergency vehicle statistics
+* Signal optimization statistics
+* Route recommendation statistics
+* Environmental impact estimates
 
 ---
 
 # System Architecture
 
 ```text
-                  Traffic Network
-                         │
-                         ▼
-                 SUMO Simulation
-                         │
-        ┌────────────────┴────────────────┐
-        │                                 │
-        ▼                                 ▼
-
-Baseline Analysis            Predictive Signal Controller
-(Fixed-Time Signals)         (Adaptive Optimization)
-
-        │                                 │
-        ▼                                 ▼
-
-Traffic Metrics              Vehicle Prediction
-Collection                   Signal Optimization
-
-        │                                 │
-        └──────────────┬──────────────────┘
-                       ▼
-
-              Performance Comparison
+SUMO Simulation
+       |
+       v
+Real-Time Traffic Collection
+       |
+       v
+Congestion Scoring Engine
+       |
+       +-----> Emergency Vehicle Manager
+       |
+       +-----> Smart Routing Engine
+       |
+       +-----> RL Data Generator
+       |
+       +-----> AI Traffic Predictor
+                     |
+                     v
+Adaptive Signal Controller
+                     |
+                     v
+Traffic Signal Actions
+                     |
+                     v
+Smart City Dashboard
 ```
-
----
-
-# Technology Stack
-
-| Technology        | Purpose                    |
-| ----------------- | -------------------------- |
-| Python            | Core Programming Language  |
-| SUMO              | Traffic Simulation         |
-| TraCI             | Communication with SUMO    |
-| XML Configuration | Network & Route Definition |
-| Statistics Module | Performance Analysis       |
 
 ---
 
 # Project Structure
 
-```text
-├── baseline_simulation.py
-├── predictive_controller.py
-├── mp_nagar.sumocfg
-├── network/
-├── routes/
-├── README.md
-```
+## adaptive_signal_demo.py
+
+Main implementation of the intelligent traffic management system.
+
+Responsibilities:
+
+* Predictive signal control
+* Peak-hour management
+* AI traffic prediction integration
+* RL dataset generation
+* Emergency vehicle handling
+* Smart routing integration
+* Dashboard generation
 
 ---
 
-# Part 1: Baseline Traffic Signal Analysis
+## normal_signal_demo.py
 
-## Purpose
+Baseline traffic simulation.
 
-The baseline simulation measures traffic conditions without any intelligent optimization.
+Used for performance comparison against the adaptive controller.
 
-Traffic lights operate according to their predefined schedules, providing a benchmark for evaluating future improvements.
+Features:
 
----
-
-## Features
-
-### Traffic Signal Monitoring
-
-* Detects all traffic signals in the network.
-* Identifies lanes controlled by each signal.
-* Monitors intersection performance continuously.
-
-### Traffic Metrics Collection
-
-The system records:
-
-* Vehicle waiting time
-* Number of halted vehicles
-* Vehicle count
-* Average vehicle speed
-
-### Network Performance Analysis
-
-Calculates:
-
-* Average waiting time per intersection
-* Average waiting time per vehicle
-* Average halted vehicles
-* Average network speed
-* Congestion ranking of intersections
+* Static signal operation
+* Traffic monitoring
+* Congestion measurement
+* Dashboard reporting
 
 ---
 
-## Baseline Workflow
+## congestion_engine.py
 
-### Step 1: Start Simulation
+Calculates and maintains congestion scores for each monitored junction.
 
-```python
-sumoCmd = [
-    sumo_binary,
-    "-c",
-    "mp_nagar.sumocfg",
-    "--scale",
-    "1"
-]
-```
+Provides:
 
-### Step 2: Detect Traffic Lights
-
-```python
-tls_ids = list(traci.trafficlight.getIDList())
-```
-
-### Step 3: Identify Controlled Lanes
-
-Store all lanes associated with each signal.
-
-### Step 4: Collect Metrics
-
-Metrics are collected every 10 simulation steps.
-
-### Step 5: Generate Summary
-
-The system produces network-wide traffic statistics and congestion reports.
+* Congestion classification
+* Historical congestion records
+* Junction ranking
+* Estimated congestion reduction metrics
 
 ---
 
-# Part 2: Predictive Traffic Signal Control
+## emergency_manager.py
 
-## Purpose
+Handles emergency vehicle detection and signal prioritization.
 
-The predictive controller proactively adjusts traffic signals before congestion occurs.
+Features:
 
-Instead of reacting to traffic after queues form, the system predicts vehicle arrivals and prepares favorable signal phases in advance.
+* Green corridor creation
+* Multi-signal coordination
+* Emergency traffic analytics
 
 ---
 
-## Features
+## routing_engine.py
 
-### Predictive Traffic Management
+Provides congestion-aware route evaluation and recommendation.
 
-* Predicts approaching vehicle arrivals.
-* Calculates Estimated Time of Arrival (ETA).
-* Monitors future route segments.
+Capabilities:
 
-### Dynamic Signal Optimization
+* Route cost estimation
+* Route comparison
+* Improvement analysis
 
-* Switches traffic lights intelligently.
-* Extends green phases when needed.
-* Reduces unnecessary red-light waiting.
+---
 
-### Real-Time Traffic Analysis
+## traffic_config.py
 
-Collects:
+Contains adaptive controller profiles and peak-hour configurations.
+
+Profiles:
+
+* Normal Traffic
+* Morning Office Traffic
+* Evening Return Traffic
+
+---
+
+## rl_interface.py
+
+Prototype interface for future Reinforcement Learning integration.
+
+Responsibilities:
+
+* State generation
+* Action logging
+* Training sample creation
+* RL export simulation
+
+---
+
+## smart_city_dashboard.py
+
+Aggregates system-wide performance metrics and environmental impact estimates.
+
+Metrics include:
 
 * Waiting time
-* Queue length
-* Halted vehicles
-* Average speed
-
-### Performance Monitoring
-
-Generates:
-
-* Congestion reports
-* Network-wide statistics
-* Efficiency comparisons
+* Network speed
+* Congestion reduction
+* Fuel savings
+* CO₂ reduction
 
 ---
 
-## Predictive Workflow
+# Machine Learning Model
 
-### 1. Network Initialization
+## Traffic Prediction Model
 
-Loads the SUMO traffic network.
+Model Type:
 
-### 2. Signal Mapping
-
-Identifies:
-
-* Traffic lights
-* Controlled lanes
-* Green phases
-* Connected road segments
-
-### 3. Vehicle Prediction
-
-For every vehicle:
-
-* Route information is analyzed.
-* Future intersections are identified.
-* ETA is calculated.
-
-### 4. Signal Preparation
-
-If predicted traffic exceeds a threshold:
-
-* Green phases are prepared early.
-* Traffic flow is prioritized.
-
-### 5. Metrics Collection
-
-The system continuously tracks performance indicators.
-
-### 6. Summary Reporting
-
-Network statistics and optimization results are generated.
-
----
-
-# Predictive Controller Parameters
-
-| Parameter              | Value | Description                 |
-| ---------------------- | ----- | --------------------------- |
-| CHECK_INTERVAL         | 10    | Prediction update interval  |
-| LOOKAHEAD_EDGES        | 5     | Future roads examined       |
-| PREPARE_GREEN_BEFORE   | 25    | Green preparation threshold |
-| MIN_VEHICLES_FOR_GREEN | 4     | Vehicle trigger threshold   |
-| GREEN_HOLD_TIME        | 30    | Green phase duration        |
-| MIN_SPEED_FOR_ETA      | 4     | Minimum ETA speed           |
-| MAX_CHANGES_PER_CHECK  | 2     | Signal changes allowed      |
-
----
-
-# Installation
-
-## 1. Install SUMO
-
-Download SUMO:
-
-https://sumo.dlr.de
-
----
-
-## 2. Install Python Dependencies
-
-```bash
-pip install traci
+```text
+Multi-Output Random Forest Regressor
 ```
 
+Predictions:
+
+1. Future Vehicle Count
+2. Future Travel Time
+
+### Input Features
+
+* Day of Week
+* Hour
+* Time Bucket
+* Source Junction
+* Destination Junction
+* Congestion Score
+* Distance
+* Lane Count
+* Vehicle Speed
+
+### Performance
+
+Latest evaluation results:
+
+```text
+Vehicle Count R² : 0.949
+Travel Time R²   : 0.866
+
+Vehicle Count MAE : 1.48
+Travel Time MAE   : 10.51 seconds
+```
+
+The model provides accurate traffic forecasting and is integrated into the adaptive controller to support predictive signal decisions.
+
 ---
 
-## 3. Configure Environment
+# RL Dataset Format
 
-Linux/macOS:
+Generated training records contain:
 
-```bash
-export SUMO_HOME=/path/to/sumo
+```text
+vehicle_id
+timestamp
+day_of_week
+hour
+minute
+source_junction
+destination_junction
+distance
+lane_count
+vehicle_speed
+congestion_score
+signal_phase
+travel_time
 ```
 
-Windows:
+This dataset can be used for future Reinforcement Learning approaches such as:
 
-```cmd
-set SUMO_HOME=C:\Program Files (x86)\Eclipse\Sumo
-```
-
-Add SUMO to your system PATH.
+* Q-Learning
+* Deep Q Networks (DQN)
+* Proximal Policy Optimization (PPO)
 
 ---
 
 # Running the Project
 
-## Baseline Analysis
-
-GUI Mode:
+## Adaptive Controller
 
 ```bash
-python baseline_simulation.py
+python adaptive_signal_demo.py
 ```
 
-Non-GUI Mode:
+## Baseline Controller
 
 ```bash
-python baseline_simulation.py --nogui
+python normal_signal_demo.py
 ```
 
----
-
-## Predictive Controller
-
-GUI Mode:
+## Short Simulation
 
 ```bash
-python predictive_controller.py
+python adaptive_signal_demo.py --short-test
 ```
 
-Non-GUI Mode:
+## Peak-Hour Modes
 
 ```bash
-python predictive_controller.py --nogui
-```
+python adaptive_signal_demo.py --peak-mode=morning
 
-Short Test:
+python adaptive_signal_demo.py --peak-mode=evening
 
-```bash
-python predictive_controller.py --short-test
-```
-
-Non-GUI Short Test:
-
-```bash
-python predictive_controller.py --nogui --short-test
+python adaptive_signal_demo.py --peak-mode=off
 ```
 
 ---
 
-# Performance Metrics
+# Technologies Used
 
-Both implementations measure:
-
-| Metric                   | Description                        |
-| ------------------------ | ---------------------------------- |
-| Average Waiting Time     | Delay experienced at intersections |
-| Waiting Time per Vehicle | Individual vehicle delay           |
-| Halted Vehicles          | Number of stopped vehicles         |
-| Average Speed            | Mean traffic speed                 |
-| Congestion Ranking       | Most congested intersections       |
-| Vehicle Throughput       | Traffic flow efficiency            |
+* Python
+* SUMO
+* TraCI API
+* Scikit-Learn
+* Random Forest Regression
+* OpenStreetMap
+* JOSM
+* NetEdit
 
 ---
 
-# Example Comparison
+# Future Enhancements
 
-## Before Implementation (Baseline)
-
-```text
-Average wait per junction: 18.34 s
-Average wait per vehicle: 2.95 s
-Average halted vehicles: 5.12
-Average speed: 6.45 m/s
-```
-
-## After Implementation (Predictive)
-
-```text
-Average wait per junction: 12.80 s
-Average wait per vehicle: 1.90 s
-Average halted vehicles: 3.20
-Average speed: 8.10 m/s
-```
+* Deep Reinforcement Learning-based signal optimization
+* Real-time camera integration
+* Vehicle-to-Infrastructure communication
+* Cloud-based traffic monitoring
+* GPS traffic feed integration
+* Multi-intersection cooperative control
+* Large-scale city deployment
 
 ---
 
-# Applications
+# License
 
-* Smart Cities
-* Intelligent Transportation Systems (ITS)
-* Urban Traffic Management
-* Transportation Planning
-* Congestion Reduction
-* Emergency Vehicle Prioritization
-* AI-Based Traffic Research
-* Traffic Signal Optimization
-
----
-
-# Future Scope
-
-* Machine Learning Traffic Prediction
-* Reinforcement Learning Signal Control
-* Emergency Vehicle Priority Routing
-* IoT Sensor Integration
-* Real-Time Traffic Density Forecasting
-* Multi-Intersection Coordination
-* Smart City Deployment
-
----
-
-# Research Contribution
-
-This project demonstrates the impact of predictive traffic signal control by comparing:
-
-### Before Implementation
-
-* Fixed-time traffic signals
-* Reactive traffic management
-* Higher waiting times
-
-### After Implementation
-
-* Predictive traffic control
-* Dynamic signal optimization
-* Reduced congestion and delays
-
-The resulting performance improvements can be quantified using:
-
-* Waiting Time Reduction
-* Congestion Reduction
-* Improved Vehicle Throughput
-* Faster Travel Times
-* Better Traffic Flow Efficiency
-
----
-
-# Team
-
-**Traffic Raiders**
-LNCT Group of Colleges
-
-Project Domain: Civic Tech
-
----
-
-# Authors
-* Traffic Raiders Team
-
---
+This project was developed as a research and educational prototype demonstrating AI-assisted traffic management and predictive signal control using SUMO.
