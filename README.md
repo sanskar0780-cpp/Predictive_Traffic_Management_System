@@ -424,7 +424,7 @@ The resulting performance improvements can be quantified using:
 **Traffic Raiders**
 LNCT Group of Colleges
 
-Project Domain: Intelligent Transportation Systems (ITS)
+Project Domain: Civic Tech
 
 ---
 
