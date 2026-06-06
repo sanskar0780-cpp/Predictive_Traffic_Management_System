@@ -1,0 +1,2 @@
+vehicle_id,timestamp,day_of_week,hour,minute,source_junction,destination_junction,distance,lane_count,vehicle_speed,congestion_score,signal_phase,travel_time
+focused_office_flow.0,44,Saturday,8,0,3778150947,cluster_3673120471_3778155308_8865441836_8865441838,471.38,2,17.42,0.0,0,34.0

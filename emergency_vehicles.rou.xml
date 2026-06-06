@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-06-06T22:19:41.735412+05:30 by Eclipse SUMO netedit 1.26.0
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <!-- VTypes -->
+    <vType id="emergencyType" maxSpeed="25.00" vClass="emergency" guiShape="emergency" color="red" accel="3.5" decel="7.5"/>
+    <!-- Vehicles, persons and containers (sorted by depart) -->
+    <vehicle id="ambulance_1" type="emergencyType" depart="5.00" departLane="best" departSpeed="max">
+        <route edges="28733674#0 28733674#1-AddedOnRampEdge 28733674#1 28733674#2 28733674#3 28733674#4 28733696#2 28733696#3-AddedOnRampEdge 28733696#3 28733696#4 374425584#5 374425584#6 374425584#7 374947124#0 -28966495#8 -28966495#7 -28966495#6 -28966495#5 -28966495#4 -958165574#1 -958165574#0 -28966503#23"/>
+    </vehicle>
+    <vehicle id="fire_1" type="emergencyType" depart="20.00" departLane="best" departSpeed="max">
+        <route edges="374425583#6 374425583#7 363110849#1 363110849#2 363110849#3 363110849#4 363110849#5 28733674#0 28733674#1-AddedOnRampEdge 28733674#1 28733674#2 28733674#3 28733674#4 28733696#2 28733696#3-AddedOnRampEdge 28733696#3 28733696#4 374425584#5 374425584#6 374425584#7"/>
+    </vehicle>
+    <vehicle id="police_1" type="emergencyType" depart="35.00" departLane="best" departSpeed="max">
+        <route edges="1453517978#1 1453517978#2 1453517978#3 363110849#2 363110849#3 363110849#4 363110849#5 28733674#0 28733674#1-AddedOnRampEdge 28733674#1 28733674#2 28733674#3 28733674#4 374425583#2 374425583#3"/>
+    </vehicle>
+    <vehicle id="fire_2" type="emergencyType" depart="45.00" departLane="best" departSpeed="max">
+        <route edges="374425583#6 374425583#7 363110849#1 363110849#2 363110849#3 363110849#4 363110849#5 28733674#0 28733674#1-AddedOnRampEdge 28733674#1 28733674#2 28733674#3 28733674#4 28733696#2 28733696#3-AddedOnRampEdge 28733696#3 28733696#4 374425584#5 374425584#6 374425584#7"/>
+    </vehicle>
+</routes>

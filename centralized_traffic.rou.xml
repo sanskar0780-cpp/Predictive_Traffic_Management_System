@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-06-06T22:19:41.734752+05:30 by Eclipse SUMO netedit 1.26.0
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <!-- VTypes -->
+    <vType id="focusedPassenger" maxSpeed="18.00" vClass="passenger" color="38,140,255" accel="2.6" decel="4.5"/>
+    <!-- Routes -->
+    <route id="office_corridor_east_to_west" edges="1453517978#1 1453517978#2 1453517978#3 363110849#2 363110849#3 363110849#4 363110849#5 28733674#0 28733674#1-AddedOnRampEdge 28733674#1 28733674#2 28733674#3 28733674#4 374425583#2 374425583#3"/>
+    <route id="return_corridor_west_to_east" edges="374425583#6 374425583#7 363110849#1 363110849#2 363110849#3 363110849#4 363110849#5 28733674#0 28733674#1-AddedOnRampEdge 28733674#1 28733674#2 28733674#3 28733674#4 28733696#2 28733696#3-AddedOnRampEdge 28733696#3 28733696#4 374425584#5 374425584#6 374425584#7"/>
+    <!-- Vehicles, persons and containers (sorted by depart) -->
+    <flow id="focused_office_flow" type="focusedPassenger" begin="0.00" end="900.00" period="10" departLane="best" departSpeed="max" route="office_corridor_east_to_west"/>
+    <flow id="focused_return_flow" type="focusedPassenger" begin="0.00" end="900.00" period="10" departLane="best" departSpeed="max" route="return_corridor_west_to_east"/>
+</routes>

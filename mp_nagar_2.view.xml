@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Center the SUMO GUI on the monitored MP Nagar traffic corridor. -->
+<viewsettings>
+    <delay value="75"/>
+    <viewport zoom="300" x="2930.39" y="2247.96" angle="0.00"/>
+</viewsettings>
