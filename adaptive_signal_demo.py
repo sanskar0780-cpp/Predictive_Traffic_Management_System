@@ -1,6 +1,7 @@
 import sys
 import traci
 
+from differentiative_algorithn import CalculusTrafficOptimizer
 
 sumo_binary = "sumo" if "--nogui" in sys.argv else "sumo-gui"
 short_test = "--short-test" in sys.argv
@@ -9,7 +10,10 @@ sumoCmd = [sumo_binary]
 if short_test:
     sumoCmd += ["--end", "60"]
 
-sumoCmd += ["-c", "mp_nagar.sumocfg", "--scale", "0.4"]
+sumoCmd += ["-c", "mp_nagar.sumocfg", "--scale", "0.35"]
+
+USE_PREDICTIVE_CONTROLLER = True
+USE_CALCULUS_CONTROLLER = False
 
 CHECK_INTERVAL = 10
 LOOKAHEAD_EDGES = 5
@@ -21,7 +25,18 @@ MIN_SPEED_FOR_ETA = 4
 MAX_CHANGES_PER_CHECK = 2
 METRIC_INTERVAL = 10
 
-TARGET_TLS_IDS = []
+TARGET_TLS_IDS = [
+    "cluster_3673120471_3778155308_8865441836_8865441838",
+    "cluster_3713300554_3713300555_3713300572",
+    "cluster_3650501033_3650501039",
+    "3778150947",
+    "315917050",
+    "366143607",
+    "366143610",
+    "3673163439",
+    "3691364000",
+    "3778155323"
+]
 
 
 def is_green_state(state):
@@ -253,6 +268,12 @@ def print_summary(metrics):
 
 traci.start(sumoCmd)
 
+optimizer = CalculusTrafficOptimizer(
+    min_green=5,
+    max_green=GREEN_HOLD_TIME,
+    cooldown=MIN_SECONDS_BETWEEN_CHANGES,
+)
+
 steps = 0
 last_signal_change = {}
 tls_ids = TARGET_TLS_IDS or list(traci.trafficlight.getIDList())
@@ -294,31 +315,121 @@ while traci.simulation.getMinExpectedNumber() > 0:
 
         changes_this_check = 0
 
-        for (tls_id, lane_id), data in sorted(
-            predictions.items(),
-            key=lambda item: item[1]["vehicles"],
-            reverse=True,
-        ):
-            if changes_this_check >= MAX_CHANGES_PER_CHECK:
-                break
+        if USE_CALCULUS_CONTROLLER:
 
-            enough_vehicles = data["vehicles"] >= MIN_VEHICLES_FOR_GREEN
-            cooldown_done = steps - last_signal_change[tls_id] >= MIN_SECONDS_BETWEEN_CHANGES
+            decision = optimizer.choose_best_signal(
+                predictions,
+                last_signal_change,
+                steps,
+            )
 
-            if not enough_vehicles or not cooldown_done:
-                continue
+            if decision:
 
-            action = prepare_green(tls_id, lane_id, lane_green_phases)
+                action = prepare_green(
+                    decision["tls_id"],
+                    decision["lane_id"],
+                    lane_green_phases,
+                )
 
-            if action:
-                changes_this_check += 1
-                last_signal_change[tls_id] = steps
-                edge_id = traci.lane.getEdgeID(lane_id)
-                print(f"\nSignal: {tls_id}")
-                print(f"Incoming road: {edge_id}")
-                print(f"Predicted vehicles: {data['vehicles']}")
-                print(f"Nearest arrival: {int(data['eta'])} seconds")
-                print(f"Green {action} before vehicles arrive")
+                if action:
+                    last_signal_change[
+                        decision["tls_id"]
+                    ] = steps
+
+                    edge_id = traci.lane.getEdgeID(
+                        decision["lane_id"]
+                    )
+
+                    print(
+                        "\n===== CALCULUS OPTIMIZATION ====="
+                    )
+
+                    print(
+                        f"Signal: "
+                        f"{decision['tls_id']}"
+                    )
+
+                    print(
+                        f"Incoming Road: "
+                        f"{edge_id}"
+                    )
+
+                    print(
+                        f"Predicted Vehicles: "
+                        f"{decision['vehicles']}"
+                    )
+
+                    print(
+                        f"ETA: "
+                        f"{decision['eta']:.2f}s"
+                    )
+
+                    print(
+                        f"Optimal Green Time: "
+                        f"{decision['green_time']}s"
+                    )
+
+                    print(
+                        f"Benefit Score: "
+                        f"{decision['score']:.2f}"
+                    )
+
+                    print(
+                        f"Green {action}"
+                    )
+
+        elif USE_PREDICTIVE_CONTROLLER:
+
+            changes_this_check = 0
+
+            for (tls_id, lane_id), data in sorted(
+                    predictions.items(),
+                    key=lambda item: item[1]["vehicles"],
+                    reverse=True,
+            ):
+
+                if changes_this_check >= MAX_CHANGES_PER_CHECK:
+                    break
+
+                enough_vehicles = (
+                        data["vehicles"]
+                        >= MIN_VEHICLES_FOR_GREEN
+                )
+
+                cooldown_done = (
+                        steps
+                        - last_signal_change[tls_id]
+                        >= MIN_SECONDS_BETWEEN_CHANGES
+                )
+
+                if (not enough_vehicles or not cooldown_done):
+                    continue
+
+                action = prepare_green(
+                    tls_id,
+                    lane_id,
+                    lane_green_phases,
+                )
+
+                if action:
+                    changes_this_check += 1
+
+                    last_signal_change[
+                        tls_id
+                    ] = steps
+
+                    edge_id = traci.lane.getEdgeID(lane_id)
+
+                    print(f"\nSignal: {tls_id}")
+
+                    print(f"Incoming road: {edge_id}")
+
+                    print(f"Predicted vehicles: "
+                        f"{data['vehicles']}")
+
+                    print(f"Nearest arrival: "f"{int(data['eta'])} seconds")
+
+                    print(f"Green {action} before vehicles arrive")
 
     steps += 1
 
