@@ -1,365 +1,264 @@
-# Smart Traffic Management System using SUMO and Predictive AI
+# AI-Powered Traffic Management and Digital Twin System
 
 ## Overview
 
-This project presents an intelligent traffic management framework built on top of **SUMO (Simulation of Urban Mobility)** and the **TraCI API**. The system combines predictive traffic signal control, congestion analytics, emergency vehicle prioritization, machine learning-based traffic forecasting, and smart routing recommendations to improve traffic flow in an urban road network.
+This project presents an AI-powered traffic management system built using SUMO (Simulation of Urban Mobility), Python, Machine Learning, and Unity.
 
-The project was developed using a real road network extracted from OpenStreetMap and converted for use within SUMO.
+The system simulates real-world traffic conditions using a road network generated from OpenStreetMap data and provides:
+
+* Adaptive traffic signal control
+* Traffic prediction using machine learning
+* Emergency vehicle prioritization
+* Congestion analysis
+* Real-time Unity digital twin visualization
+* Traffic data collection for future reinforcement learning research
+
+The implementation uses the MP Nagar road network (Bhopal, India) as the primary simulation environment.
 
 ---
 
-## Key Features
+## Features
 
 ### Adaptive Traffic Signal Control
 
-* Predicts approaching traffic using route lookahead analysis.
-* Dynamically prepares or extends green phases before vehicles arrive.
-* Reduces unnecessary waiting and signal switching.
+The system continuously monitors:
 
-### AI-Based Traffic Prediction
+* Vehicle queue lengths
+* Lane occupancy
+* Vehicle arrival rates
+* Congestion levels
 
-* Multi-Output Random Forest Regression model.
-* Predicts:
+Traffic signals are dynamically adjusted based on current traffic conditions rather than fixed signal timings.
 
-  * Future vehicle arrivals at junctions.
-  * Expected travel time between junctions.
-* Enables proactive traffic management rather than reactive control.
+---
 
-### Congestion Scoring Engine
+### Machine Learning Traffic Prediction
 
-* Continuously evaluates traffic conditions using:
+A Random Forest Multi-Output Regression model predicts:
 
-  * Vehicle count
-  * Waiting time
-  * Halted vehicles
-  * Average speed
-* Produces a normalized congestion score between 0 and 100.
-* Classifies congestion as:
+* Future vehicle count
+* Future travel time
 
-  * Low
-  * Medium
-  * High
+Input features include:
+
+* Day of week
+* Hour of day
+* Distance
+* Lane count
+* Congestion score
+* Signal phase
+* Source junction
+* Destination junction
+
+The trained model is integrated into the traffic controller to anticipate congestion before it occurs.
+
+---
 
 ### Emergency Vehicle Priority
 
-* Detects:
+Special emergency vehicles can be introduced into the simulation.
 
-  * Ambulances
-  * Fire vehicles
-  * Police vehicles
-* Creates temporary green corridors along the vehicle's route.
-* Prioritizes emergency movement through intersections.
+The controller:
 
-### Smart Route Recommendation
-
-* Evaluates route quality using live congestion information.
-* Estimates potential route improvements.
-* Generates alternative route recommendations without modifying active vehicle routes.
-
-### Peak-Hour Traffic Profiles
-
-Supports multiple operating modes:
-
-* Normal Traffic
-* Morning Office Traffic
-* Evening Return Traffic
-
-Controller sensitivity and timing parameters automatically adapt to traffic conditions.
-
-### RL-Compatible Data Generation
-
-The system exports structured traffic data suitable for future Reinforcement Learning experiments.
-
-Captured information includes:
-
-* Vehicle movement history
-* Source and destination junctions
-* Travel time
-* Congestion levels
-* Signal states
-
-### Smart City Dashboard
-
-Provides network-wide performance analytics including:
-
-* Average waiting time
-* Average network speed
-* Congested junction count
-* Emergency vehicle statistics
-* Signal optimization statistics
-* Route recommendation statistics
-* Environmental impact estimates
+* Detects emergency vehicles
+* Predicts arrival times
+* Extends or prepares green signals
+* Reduces waiting time along emergency corridors
 
 ---
 
-# System Architecture
+### Mixed Traffic Simulation
 
-```text
-SUMO Simulation
-       |
-       v
-Real-Time Traffic Collection
-       |
-       v
-Congestion Scoring Engine
-       |
-       +-----> Emergency Vehicle Manager
-       |
-       +-----> Smart Routing Engine
-       |
-       +-----> RL Data Generator
-       |
-       +-----> AI Traffic Predictor
-                     |
-                     v
-Adaptive Signal Controller
-                     |
-                     v
-Traffic Signal Actions
-                     |
-                     v
-Smart City Dashboard
-```
+The system supports custom vehicle types including:
+
+* Cars
+* Buses
+* Trucks
+* Ambulances
+* Custom Indian traffic elements such as Thelas (street carts)
+
+Custom vehicle routes can be created using NETEDIT and visualized in Unity using dedicated 3D models.
 
 ---
 
-# Project Structure
+### Real-Time Unity Digital Twin
 
-## adaptive_signal_demo.py
+The SUMO simulation is synchronized with Unity through a custom communication bridge.
 
-Main implementation of the intelligent traffic management system.
+Features include:
 
-Responsibilities:
+* Real-time vehicle synchronization
+* 3D road network visualization
+* Custom vehicle prefabs
+* Interactive camera controls
+* Terrain support
+* Performance monitoring
 
-* Predictive signal control
-* Peak-hour management
-* AI traffic prediction integration
-* RL dataset generation
-* Emergency vehicle handling
-* Smart routing integration
-* Dashboard generation
-
----
-
-## normal_signal_demo.py
-
-Baseline traffic simulation.
-
-Used for performance comparison against the adaptive controller.
-
-Features:
-
-* Static signal operation
-* Traffic monitoring
-* Congestion measurement
-* Dashboard reporting
+The Unity digital twin mirrors the live SUMO simulation and provides a realistic visualization environment.
 
 ---
 
-## congestion_engine.py
+## System Architecture
 
-Calculates and maintains congestion scores for each monitored junction.
+OpenStreetMap Data
 
-Provides:
+↓
 
-* Congestion classification
-* Historical congestion records
-* Junction ranking
-* Estimated congestion reduction metrics
+JOSM / Network Editing
 
----
+↓
 
-## emergency_manager.py
+SUMO Network Generation
 
-Handles emergency vehicle detection and signal prioritization.
+↓
 
-Features:
+SUMO Traffic Simulation
 
-* Green corridor creation
-* Multi-signal coordination
-* Emergency traffic analytics
+↓
 
----
+TraCI API
 
-## routing_engine.py
+↓
 
-Provides congestion-aware route evaluation and recommendation.
+Python Adaptive Controller
 
-Capabilities:
+↓
 
-* Route cost estimation
-* Route comparison
-* Improvement analysis
+Machine Learning Traffic Predictor
 
----
+↓
 
-## traffic_config.py
+Unity Bridge (ZeroMQ / NetMQ)
 
-Contains adaptive controller profiles and peak-hour configurations.
+↓
 
-Profiles:
+Unity Digital Twin
 
-* Normal Traffic
-* Morning Office Traffic
-* Evening Return Traffic
+↓
+
+Real-Time Traffic Visualization
 
 ---
 
-## rl_interface.py
+## Technologies Used
 
-Prototype interface for future Reinforcement Learning integration.
+### Simulation
 
-Responsibilities:
+* SUMO
+* SUMO-GUI
+* TraCI
 
-* State generation
-* Action logging
-* Training sample creation
-* RL export simulation
+### Machine Learning
+
+* Scikit-Learn
+* Random Forest Regressor
+* MultiOutputRegressor
+* Joblib
+
+### Visualization
+
+* Unity 6
+* NetMQ
+* ZeroMQ
+
+### Development
+
+* Python
+* C#
+* XML
+* OpenStreetMap
+* JOSM
+* NETEDIT
 
 ---
 
-## smart_city_dashboard.py
+## Machine Learning Model
 
-Aggregates system-wide performance metrics and environmental impact estimates.
+### Targets
 
-Metrics include:
-
-* Waiting time
-* Network speed
-* Congestion reduction
-* Fuel savings
-* CO₂ reduction
-
----
-
-# Machine Learning Model
-
-## Traffic Prediction Model
-
-Model Type:
-
-```text
-Multi-Output Random Forest Regressor
-```
-
-Predictions:
+The model predicts:
 
 1. Future Vehicle Count
 2. Future Travel Time
 
-### Input Features
-
-* Day of Week
-* Hour
-* Time Bucket
-* Source Junction
-* Destination Junction
-* Congestion Score
-* Distance
-* Lane Count
-* Vehicle Speed
-
 ### Performance
 
-Latest evaluation results:
+Latest model results:
+
+Vehicle Count MAE: 1.48
+
+Travel Time MAE: 10.51
+
+Vehicle Count R²: 0.949
+
+Travel Time R²: 0.866
+
+These results demonstrate strong predictive performance for traffic forecasting.
+
+---
+
+## Unity Integration
+
+The Unity Digital Twin receives:
+
+* Vehicle IDs
+* Vehicle types
+* Vehicle positions
+* Vehicle speeds
+* Vehicle orientations
+
+Vehicle models are mapped dynamically based on SUMO vehicle types.
+
+Examples:
+
+* Car → Standard vehicle prefab
+* Ambulance → Emergency vehicle prefab
+* Thela → Indian street cart prefab
+
+---
+
+## Project Structure
 
 ```text
-Vehicle Count R² : 0.949
-Travel Time R²   : 0.866
-
-Vehicle Count MAE : 1.48
-Travel Time MAE   : 10.51 seconds
+.
+├── adaptive_signal_demo.py
+├── normal_signal_demo.py
+├── unity_bridge.py
+├── traffic_predictor.pkl
+├── source_encoder.pkl
+├── destination_encoder.pkl
+├── mp_nagar_2.net.xml
+├── mp_nagar_2.sumocfg
+├── UnityDigitalTwin/
+├── route_files/
+├── training_data/
+└── README.md
 ```
 
-The model provides accurate traffic forecasting and is integrated into the adaptive controller to support predictive signal decisions.
+## Future Enhancements
+
+* Reinforcement Learning based signal optimization
+* Dynamic route guidance
+* Traffic heatmap visualization
+* Pedestrian simulation
+* Smart parking integration
+* Multi-city deployment
+* Real-time IoT sensor integration
 
 ---
 
-# RL Dataset Format
+## Results
 
-Generated training records contain:
+The system successfully demonstrates:
 
-```text
-vehicle_id
-timestamp
-day_of_week
-hour
-minute
-source_junction
-destination_junction
-distance
-lane_count
-vehicle_speed
-congestion_score
-signal_phase
-travel_time
-```
+* Reduced waiting times
+* Adaptive signal behavior
+* Congestion prediction
+* Emergency vehicle prioritization
+* Real-time synchronization between SUMO and Unity
 
-This dataset can be used for future Reinforcement Learning approaches such as:
+The project provides a foundation for developing intelligent transportation systems and smart city traffic management solutions.
 
-* Q-Learning
-* Deep Q Networks (DQN)
-* Proximal Policy Optimization (PPO)
+## Authors
 
----
-
-# Running the Project
-
-## Adaptive Controller
-
-```bash
-python adaptive_signal_demo.py
-```
-
-## Baseline Controller
-
-```bash
-python normal_signal_demo.py
-```
-
-## Short Simulation
-
-```bash
-python adaptive_signal_demo.py --short-test
-```
-
-## Peak-Hour Modes
-
-```bash
-python adaptive_signal_demo.py --peak-mode=morning
-
-python adaptive_signal_demo.py --peak-mode=evening
-
-python adaptive_signal_demo.py --peak-mode=off
-```
-
----
-
-# Technologies Used
-
-* Python
-* SUMO
-* TraCI API
-* Scikit-Learn
-* Random Forest Regression
-* OpenStreetMap
-* JOSM
-* NetEdit
-
----
-
-# Future Enhancements
-
-* Deep Reinforcement Learning-based signal optimization
-* Real-time camera integration
-* Vehicle-to-Infrastructure communication
-* Cloud-based traffic monitoring
-* GPS traffic feed integration
-* Multi-intersection cooperative control
-* Large-scale city deployment
-
----
-
-# License
-
-This project was developed as a research and educational prototype demonstrating AI-assisted traffic management and predictive signal control using SUMO.
+Developed as an AI-Based Traffic Management and Digital Twin project using SUMO, Machine Learning, and Unity.
