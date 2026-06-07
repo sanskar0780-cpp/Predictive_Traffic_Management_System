@@ -87,14 +87,14 @@ if short_test:
 
 sumoCmd += ["-c", "mp_nagar_2.sumocfg", "--scale", "0.7"]
 
-CHECK_INTERVAL = 10
+CHECK_INTERVAL = 15
 LOOKAHEAD_EDGES = 5
 PREPARE_GREEN_BEFORE = 25
 MIN_VEHICLES_FOR_GREEN = 4
-MIN_SECONDS_BETWEEN_CHANGES = 30
-GREEN_HOLD_TIME = 30
+MIN_SECONDS_BETWEEN_CHANGES = 10
+GREEN_HOLD_TIME = 40
 MAX_GREEN_HOLD_TIME = 25
-MAX_CONSECUTIVE_ACTIONS_PER_TLS = 2
+MAX_CONSECUTIVE_ACTIONS_PER_TLS = 4
 MIN_SPEED_FOR_ETA = 4
 MAX_CHANGES_PER_CHECK = 2
 METRIC_INTERVAL = 10
@@ -782,10 +782,10 @@ while traci.simulation.getMinExpectedNumber() > 0:
 
             future = future_predictions.get(tls_id)
 
-            if future:
-                print(f"\nAI Prediction [{tls_id}]")
-                print(f"Future Vehicles: {future['vehicles']:.1f}")
-                print(f"Future Travel Time: {future['travel_time']:.1f}s")
+            # if future:
+            #     print(f"\nAI Prediction [{tls_id}]")
+            #     print(f"Future Vehicles: {future['vehicles']:.1f}")
+            #     print(f"Future Travel Time: {future['travel_time']:.1f}s")
 
             predicted_volume = data["vehicles"]
 
@@ -825,20 +825,20 @@ while traci.simulation.getMinExpectedNumber() > 0:
                 signal_optimizations += 1
                 actions_since_rl_sample.append(f"predictive:{tls_id}:{action}")
                 edge_id = traci.lane.getEdgeID(lane_id)
-                print(f"\nSignal: {tls_id}")
-                print(f"Incoming road: {edge_id}")
-                print(f"Current Vehicles: {data['vehicles']}")
+                # print(f"\nSignal: {tls_id}")
+                # print(f"Incoming road: {edge_id}")
+                # print(f"Current Vehicles: {data['vehicles']}")
 
-                if future:
-                    print(f"AI Predicted Volume: " f"{future['vehicles']:.1f}")
+                # if future:
+                #     print(f"AI Predicted Volume: " f"{future['vehicles']:.1f}")
+                #
+                #     print(f"AI Predicted Travel Time: " f"{future['travel_time']:.1f}s")
 
-                    print(f"AI Predicted Travel Time: " f"{future['travel_time']:.1f}s")
-
-                print(f"Nearest arrival: {int(data['eta'])} seconds")
-                print(
-                    f"AI optimized signal "
-                    f"({action}) before congestion formed"
-                )
+                # print(f"Nearest arrival: {int(data['eta'])} seconds")
+                # print(
+                #     f"AI optimized signal "
+                #     f"({action}) before congestion formed"
+                # )
 
         # Let signals return to their programmed cycles after two consecutive
         # interventions so less-busy approaches are not starved indefinitely.

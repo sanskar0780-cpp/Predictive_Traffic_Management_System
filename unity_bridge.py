@@ -9,7 +9,7 @@ except ImportError:  # Keep the SUMO controller usable without Unity tooling.
     zmq = None
 
 
-UNITY_UPDATE_INTERVAL = 5
+UNITY_UPDATE_INTERVAL = 3
 
 
 class UnityBridge:
@@ -35,6 +35,9 @@ class UnityBridge:
         self._router = None
         self._router_thread = None
         self._running = False
+        self.messages_published = 0
+        self.bytes_published = 0
+        self._last_stats_log = time.monotonic()
 
         if not self.enabled:
             if zmq is None:
@@ -82,13 +85,12 @@ class UnityBridge:
             except traci_module.TraCIException:
                 continue
 
-            unity_x, unity_y, unity_z = self.sumo_to_unity_position(sumo_x, sumo_y)
+            unity_x, _unity_y, unity_z = self.sumo_to_unity_position(sumo_x, sumo_y)
             vehicles.append(
                 {
                     "id": vehicle_id,
                     "x": round(unity_x, 3),
                     "y": round(unity_z, 3),
-                    "height": round(unity_y, 3),
                     "angle": round(angle, 3),
                     "speed": round(speed, 3),
                     "vehicle_type": vehicle_type,
@@ -102,18 +104,28 @@ class UnityBridge:
             return
 
         vehicles = self.collect_vehicles(traci_module)
-        self._publish(
-            {
-                "type": "vehicles",
-                "vehicles": vehicles,
-            }
-        )
-        self.publish_status(
-            sumo_vehicle_count=len(vehicles),
-            simulation_time=traci_module.simulation.getTime(),
-        )
+        vehicle_payload = {
+            "type": "vehicles",
+            "vehicles": vehicles,
+            "sumo_vehicle_count": len(vehicles),
+            "simulation_time": round(traci_module.simulation.getTime(), 3),
+        }
+        self._publish(vehicle_payload)
+        self._log_stats_if_due(len(vehicles))
 
     def publish_status(self, sumo_vehicle_count, simulation_time):
+        if not self.enabled:
+            return
+
+        self._publish(
+            {
+                "type": "status",
+                "sumo_vehicle_count": sumo_vehicle_count,
+                "simulation_time": round(simulation_time, 3),
+            }
+        )
+
+    def publish_status_legacy(self, sumo_vehicle_count, simulation_time):
         if not self.enabled:
             return
 
@@ -181,9 +193,24 @@ class UnityBridge:
             self._router.close(linger=0)
 
     def _publish(self, payload):
-        self._publisher.send_string(
-            json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
+        encoded = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
+        self._publisher.send_string(encoded)
+        self.messages_published += 1
+        self.bytes_published += len(encoded.encode("utf-8"))
+
+    def _log_stats_if_due(self, vehicle_count):
+        now = time.monotonic()
+        if now - self._last_stats_log < 10:
+            return
+
+        average_size = self.bytes_published / max(1, self.messages_published)
+        print(
+            "Unity bridge stats: "
+            f"vehicles={vehicle_count}, "
+            f"messages={self.messages_published}, "
+            f"avg_message_size={average_size:.0f} bytes"
         )
+        self._last_stats_log = now
 
     def _drain_unity_responses(self):
         poller = zmq.Poller()
